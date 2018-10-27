@@ -33,6 +33,14 @@ function Sigmoid(value)
   return k / (1 + k)
 end
 
+function LeakyReLu(value)
+	if(value < 0) then
+    return 0.01*value
+  else
+   	return value
+  end
+end
+
 local Slnn = {}
 function Slnn.New(nI, nO, nH, nPH, a)
   local o = {}
@@ -40,7 +48,7 @@ function Slnn.New(nI, nO, nH, nPH, a)
   o.numOutputs = nO
   o.numHidden = nH
   o.numNPerHidden = nPH
-  o.explorationRate = a
+  o.alpha = a
   o.layers = {}
   if o.numHidden > 0 then
     table.insert(o.layers, Layer(o.numNPerHidden, o.numInputs))
@@ -62,6 +70,7 @@ function Slnn.New(nI, nO, nH, nPH, a)
     local inputs = {}
     local outputValues = {}
     local currentInput = 1
+    --print(#inputValues)
     if #inputValues ~= o.numInputs then
       print("Error: Number of inputs should be" .. o.numInputs)
       return outputValues
@@ -95,7 +104,7 @@ function Slnn.New(nI, nO, nH, nPH, a)
   end
 
   function o.PrintWeights()
-    weightStr = ""
+    local weightStr = ""
     for k,l in pairs(o.layers) do
       for k,n in pairs(l.neurons) do
         for k,w in pairs(n.weights) do
@@ -108,10 +117,10 @@ function Slnn.New(nI, nO, nH, nPH, a)
   end
 
   function o:LoadWeights(weightStr)
-    if weights == "" then
+    if weightStr == "" then
       return
     end
-    weightValues = {}
+    local weightValues = {}
     for value in string.gmatch(weightStr, '([^,]+)') do
       table.insert(weightValues, value)
     end
@@ -146,22 +155,22 @@ function Slnn.New(nI, nO, nH, nPH, a)
         for k=1,o.layers[i].neurons[j].numInputs do
           if i == #o.layers then
             error = desiredOutput[j] - outputs[j]
-            o.layers[i].neurons[j].weights[k] = o.layers[i].neurons[j].weights[k] + o.explorationRate * o.layers[i].neurons[j].inputs[k] * error
+            o.layers[i].neurons[j].weights[k] = o.layers[i].neurons[j].weights[k] + o.alpha * o.layers[i].neurons[j].inputs[k] * error
           else
-            o.layers[i].neurons[j].weights[k] = o.layers[i].neurons[j].weights[k] + o.explorationRate * o.layers[i].neurons[j].inputs[k] * o.layers[i].neurons[j].errorGradient
+            o.layers[i].neurons[j].weights[k] = o.layers[i].neurons[j].weights[k] + o.alpha * o.layers[i].neurons[j].inputs[k] * o.layers[i].neurons[j].errorGradient
           end
         end
-        o.layers[i].neurons[j].bias = o.layers[i].neurons[j].bias + o.explorationRate * -1 * o.layers[i].neurons[j].errorGradient
+        o.layers[i].neurons[j].bias = o.layers[i].neurons[j].bias + o.alpha * -1 * o.layers[i].neurons[j].errorGradient
       end
     end
   end
 
   function o.OutputActivationFunction(value)
-    return TanH(value)
+    return Sigmoid(value)
   end
 
   function o.HiddenActivationFunction(value)
-    return Sigmoid(value)
+    return LeakyReLu(value)
   end
 
 return o

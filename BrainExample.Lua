@@ -1,8 +1,7 @@
-local Slnn = require("Slnn")
+local Slnn = require("network.Slnn")
 math.randomseed(os.time())
-local network = Slnn.New(2,1,1,3,0.8)
+local network = Slnn.New(2,1,1,3,0.05)
 local result = {}
-math.randomseed(os.time())
 
 function Train(i1,i2,o)
   local inputs = {}
